@@ -5,17 +5,20 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Teacher;
 
 use App\Http\Controllers\Controller;
+use App\Interfaces\LearningSystemServiceInterface;
+use App\Interfaces\ProgressRegistrySystemServiceInterface;
+use App\Interfaces\StudentSystemServiceInterface;
 use App\Services\CurrentUserResolver;
 use App\Student;
 use App\WorkplaceLearningPeriod;
 use App\Folder;
 use App\SavedLearningItem;
 use App\Tips\EvaluatedTip;
-use App\Repository\Eloquent\TipRepository;
-use App\Repository\Eloquent\ResourcePersonRepository;
+//use App\Repository\Eloquent\TipRepository;
+//use App\Repository\Eloquent\ResourcePersonRepository;
 use App\Repository\Eloquent\LearningActivityProducingRepository;
 use App\Repository\Eloquent\LearningActivityActingRepository;
-use App\Repository\Eloquent\CategoryRepository;
+//use App\Repository\Eloquent\CategoryRepository;
 use App\Repository\Eloquent\SavedLearningItemRepository;
 use App\Tips\Services\TipEvaluator;
 use App\Analysis\Producing\ProducingAnalysisCollector;
@@ -32,57 +35,76 @@ class StudentDetails extends Controller
      */
     private $tipEvaluator;
 
-     /**
-     * @var LearningActivityProducingRepository
-     */
-    private $learningActivityProducingRepository;
+//     /**
+//     * @var LearningActivityProducingRepository
+//     */
+//    private $learningActivityProducingRepository;
+//
+//    /**
+//     * @var LearningActivityActingRepository
+//     */
+//    private $learningActivityActingRepository;
+//
+//     /**
+//     * @var SavedLearningItemRepository
+//     */
+//    private $savedLearningItemRepository;
+
+//    /**
+//     * @var ResourcePersonRepository
+//     */
+//    private $resourcePersonRepository;
 
     /**
-     * @var LearningActivityActingRepository
+     * @var StudentSystemServiceInterface
      */
-    private $learningActivityActingRepository;
+    private $studentSystemService;
 
-     /**
-     * @var SavedLearningItemRepository
-     */
-    private $savedLearningItemRepository;
+//    private $categoryRepository;
 
     /**
-     * @var ResourcePersonRepository
+     * @var LearningSystemServiceInterface
      */
-    private $resourcePersonRepository;
+    private $learningSystemService;
 
-     /**
-     * @var CategoryRepository
+    /**
+     * @var ProgressRegistrySystemServiceInterface
      */
-    private $categoryRepository;
+    private $progressRegistrySystemService;
 
-    /** @var TipRepository */
-    private $tipRepository;
+//    /** @var TipRepository */
+//    private $tipRepository;
 
     public function __construct(
         CurrentUserResolver $currentUserResolver,
-        TipRepository $tipRepository,
-        SavedLearningItemRepository $savedLearningItemRepository,
-        LearningActivityProducingRepository $learningActivityProducingRepository,
-        LearningActivityActingRepository $learningActivityActingRepository,
-        ResourcePersonRepository $resourcePersonRepository,
-        CategoryRepository $categoryRepository)
+//        TipRepository $tipRepository,
+//        SavedLearningItemRepository $savedLearningItemRepository,
+//        LearningActivityProducingRepository $learningActivityProducingRepository,
+//        LearningActivityActingRepository $learningActivityActingRepository,
+//        ResourcePersonRepository $resourcePersonRepository,
+        StudentSystemServiceInterface $studentSystemService,
+//        CategoryRepository $categoryRepository
+        LearningSystemServiceInterface $learningSystemService,
+        ProgressRegistrySystemServiceInterface $progressRegistrySystemService)
 
     {
         $this->currentUserResolver = $currentUserResolver;
-        $this->tipRepository = $tipRepository;
-        $this->savedLearningItemRepository = $savedLearningItemRepository;
-        $this->learningActivityProducingRepository = $learningActivityProducingRepository;
-        $this->learningActivityActingRepository = $learningActivityActingRepository;
-        $this->resourcePersonRepository = $resourcePersonRepository;
-        $this->categoryRepository = $categoryRepository;
+//        $this->tipRepository = $tipRepository;
+//        $this->savedLearningItemRepository = $savedLearningItemRepository;
+//        $this->learningActivityProducingRepository = $learningActivityProducingRepository;
+//        $this->learningActivityActingRepository = $learningActivityActingRepository;
+//        $this->resourcePersonRepository = $resourcePersonRepository;
+        $this->studentSystemService = $studentSystemService;
+        $this->learningSystemService = $learningSystemService;
+        $this->progressRegistrySystemService = $progressRegistrySystemService;
+//        $this->categoryRepository = $categoryRepository;
     }
 
     public function __invoke(Student $student, TipEvaluator $evaluator, ProducingAnalysisCollector $producingAnalysisCollector)
     {
         $teacher = $this->currentUserResolver->getCurrentUser();
-        $sli = $this->savedLearningItemRepository->findByStudentnr($student->student_id);
+//        $sli = $this->savedLearningItemRepository->findByStudentnr($student->student_id);
+        $sli = $this->progressRegistrySystemService->getSavedLearningItemByStudentId($student->student_id);
 
         // all wplps of the student where the logged-in teacher is the supervisor.
         $workplaces = $student->getWorkplaceLearningPeriods()
@@ -95,15 +117,17 @@ class StudentDetails extends Controller
 
         $currentWorkplace = $student->getCurrentWorkplace();
         $workplace = in_array($currentWorkplace, $workplaces) ? $currentWorkplace : reset($workplaces);
-        $tips = $this->tipRepository->all();
+        $tips = $this->progressRegistrySystemService->getAllTips();
         $learningperiod = $student->getCurrentWorkplaceLearningPeriod();
 
         $sharedFolders = $student->folders->filter(function (Folder $folder) {
             return $folder->isShared();
         });
 
-        $persons = $this->resourcePersonRepository->all();
-        $categories = $this->categoryRepository->all();
+//        $persons = $this->resourcePersonRepository->all();
+        $persons = $this->studentSystemService->getAllResourcePersons();
+//        $categories = $this->categoryRepository->all();
+        $categories = $this->learningSystemService->getAllCategories();
         $associatedActivities = [];
 
         $savedActivitiesIds = $sli->filter(function (SavedLearningItem $item) {
@@ -111,12 +135,14 @@ class StudentDetails extends Controller
         })->pluck('item_id')->toArray();
 
         if ($student->educationProgram->educationprogramType->isActing()) {
-            $allActivities = $this->learningActivityActingRepository->getActivitiesForStudent($student);
+//            $allActivities = $this->learningActivityActingRepository->getActivitiesForStudent($student);
+            $allActivities = $this->progressRegistrySystemService->getLearningActivityActingForStudent($student);
             foreach($allActivities as $activity) {
                 $associatedActivities[$activity->laa_id] = $activity;
             }
         } elseif ($student->educationProgram->educationprogramType->isProducing()) {
-            $allActivities = $this->learningActivityProducingRepository->getActivitiesForStudent($student);
+//            $allActivities = $this->learningActivityProducingRepository->getActivitiesForStudent($student);
+            $allActivities = $this->progressRegistrySystemService->getActivitiesProducingForStudent($student);
             foreach($allActivities as $activity) {
                 $associatedActivities[$activity->lap_id] = $activity;
             }
