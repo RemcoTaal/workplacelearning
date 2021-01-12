@@ -7,7 +7,7 @@ namespace App;
 use Illuminate\Database\Eloquent\Model;
 
 /**
- * App\order.
+ * App\Order.
  *
  * @property int $or_id
  * @property int $ga_id
@@ -22,17 +22,17 @@ use Illuminate\Database\Eloquent\Model;
  * @property int $detailed_reflection
  * @property int $evidence
  */
-class order extends Model
+class Order extends Model
 {
 
-    protected $table = "order";
+    protected $table = "Order";
     protected $primaryKey = "or_id";
 
 //    https://laravel.com/docs/5.0/eloquent#timestamps
     public $timestamps = false;
 
-    public function generic_acting(){
-        return $this->belongsTo('App\generic_acting','ga_id');
+    public function GenericActing(){
+        return $this->belongsTo('App\GenericActing','ga_id');
     }
 
 }

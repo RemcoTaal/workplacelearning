@@ -6,15 +6,15 @@ namespace App;
 use Illuminate\Database\Eloquent\Model;
 
 /**
- * App\generic_acting.
+ * App\GenericActing.
  *
  * @property int $ga_id
  * @property int $ep_id
  */
 
-class generic_acting extends Model
+class GenericActing extends Model
 {
-    protected $table = "generic_acting";
+    protected $table = "GenericActing";
     protected $primaryKey = "ga_id";
 
 //    https://laravel.com/docs/5.0/eloquent#timestamps

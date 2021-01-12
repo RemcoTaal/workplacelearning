@@ -7,7 +7,7 @@ namespace App;
 use Illuminate\Database\Eloquent\Model;
 
 /**
- * App\content.
+ * App\Content.
  *
  * @property int $cont_id
  * @property int $ga_id
@@ -16,17 +16,17 @@ use Illuminate\Database\Eloquent\Model;
  * @property string $competence
  * @property string $evidence
  */
-class content extends Model
+class Content extends Model
 {
-    protected $table = "content";
+    protected $table = "Content";
     protected $primaryKey = "cont_id";
 
 //    https://laravel.com/docs/5.0/eloquent#timestamps
     public $timestamps = false;
 
 
-    public function generic_acting(){
-        return $this->belongsTo('App\generic_acting','ga_id');
+    public function GenericActing(){
+        return $this->belongsTo('App\GenericActing','ga_id');
     }
 
 }

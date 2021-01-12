@@ -13,18 +13,16 @@ class AddIvkTables extends Migration
      */
     public function up()
     {
-        Schema::create('generic_acting', function (Blueprint $table) {
-            $table->increments('ga_id');
-            $table->timestamps();
+        Schema::create('GenericActing', function (Blueprint $table) {
+            $table->integer('ga_id',true);
             $table->integer('ep_id')->nullable(false);
         });
-        Schema::table('generic_acting', function (Blueprint $table) {
+        Schema::table('GenericActing', function (Blueprint $table) {
             $table->foreign('ep_id','ep_id_fk_generic_actingTable')->references('ep_id')->on('educationprogram');
         });
 
-        Schema::create('order', function (Blueprint $table) {
-            $table->increments('or_id');
-            $table->timestamps();
+        Schema::create('Order', function (Blueprint $table) {
+            $table->integer('or_id',true);
             $table->integer('date')->nullable(false);
             $table->integer('situation')->nullable(false);
             $table->integer('timeslot')->nullable(false);
@@ -37,22 +35,21 @@ class AddIvkTables extends Migration
             $table->integer('evidence')->nullable(false);
             $table->integer('ep_id')->nullable(false);
         });
-        Schema::table('generic_acting', function (Blueprint $table) {
+        Schema::table('Order', function (Blueprint $table) {
             $table->foreign('ep_id','ep_id_fk_orderTable')->references('ep_id')->on('educationprogram')->onDelete('CASCADE');
         });
 
 
-        Schema::create('content', function (Blueprint $table) {
-            $table->increments('cont_id');
-            $table->timestamps();
+        Schema::create('Content', function (Blueprint $table) {
+            $table->integer('cont_id',true);
             $table->integer('ga_id')->nullable(false);
             $table->string('timeslot')->nullable(false);
             $table->string('learninggoal')->nullable(false);
             $table->string('competence')->nullable(false);
             $table->string('evidence')->nullable(false);
         });
-        Schema::table('generic_acting', function (Blueprint $table) {
-            $table->foreign('ga_id')->references('ga_id')->on('generic_acting')->onDelete('CASCADE');
+        Schema::table('Content', function (Blueprint $table) {
+            $table->foreign('ga_id','ga_id_fk_genericActingTable')->references('ga_id')->on('GenericActing')->onDelete('CASCADE');
         });
     }
 
@@ -63,8 +60,8 @@ class AddIvkTables extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('generic_acting');
-        Schema::dropIfExists('order');
-        Schema::dropIfExists('content');
+        Schema::dropIfExists('GenericActing');
+        Schema::dropIfExists('Order');
+        Schema::dropIfExists('Content');
     }
 }
